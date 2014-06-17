@@ -41,7 +41,7 @@ func BenchmarkSelect(b *testing.B) {
 	selector.Add(c2, nil, nil)
 	selector.Add(c3, nil, nil)
 	selector.Add(c4, nil, nil)
-	selector.Add(c5, nil, func() int {
+	selector.Add(c5, nil, func() interface{} {
 		return 42
 	})
 	b.ResetTimer()

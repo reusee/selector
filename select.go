@@ -5,7 +5,7 @@ import "reflect"
 type Selector struct {
 	cases     []reflect.SelectCase
 	selecting []reflect.SelectCase
-	toSend    []*reflect.Value
+	toSend    []func() interface{}
 	cbs       []interface{}
 }
 
@@ -22,7 +22,7 @@ var emptyCase = reflect.SelectCase{
 	Dir: reflect.SelectRecv,
 }
 
-func (s *Selector) Add(ch interface{}, cb interface{}, toSend interface{}) *Case {
+func (s *Selector) Add(ch interface{}, cb interface{}, toSend func() interface{}) *Case {
 	dir := reflect.SelectRecv
 	if toSend != nil {
 		dir = reflect.SelectSend
@@ -33,12 +33,7 @@ func (s *Selector) Add(ch interface{}, cb interface{}, toSend interface{}) *Case
 	}
 	s.cases = append(s.cases, selectCase)
 	s.selecting = append(s.selecting, selectCase)
-	var toSendCb *reflect.Value
-	if toSend != nil {
-		v := reflect.ValueOf(toSend)
-		toSendCb = &v
-	}
-	s.toSend = append(s.toSend, toSendCb)
+	s.toSend = append(s.toSend, toSend)
 	s.cbs = append(s.cbs, cb)
 	return &Case{
 		index:    len(s.cases) - 1,
@@ -49,8 +44,7 @@ func (s *Selector) Add(ch interface{}, cb interface{}, toSend interface{}) *Case
 func (s *Selector) Select() {
 	for i, send := range s.toSend {
 		if send != nil {
-			ret := send.Call(nil)
-			s.selecting[i].Send = ret[0]
+			s.selecting[i].Send = reflect.ValueOf(send())
 		}
 	}
 	n, recv, ok := reflect.Select(s.selecting)
