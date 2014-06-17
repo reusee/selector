@@ -60,10 +60,10 @@ func (s *Selector) Select() {
 				switch cb := s.cbs[n].(type) {
 				case func():
 					cb()
+				case func(interface{}):
+					cb(recv.Interface())
 				default:
-					reflect.ValueOf(cb).Call([]reflect.Value{
-						recv,
-					})
+					panic("unknown callback")
 				}
 			}
 		}
