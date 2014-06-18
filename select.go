@@ -12,6 +12,7 @@ type Selector struct {
 type Case struct {
 	index    int
 	selector *Selector
+	disabled bool
 }
 
 func New() *Selector {
@@ -69,9 +70,15 @@ func (s *Selector) Select() {
 }
 
 func (c *Case) Disable() {
-	c.selector.selecting[c.index] = emptyCase
+	if !c.disabled {
+		c.selector.selecting[c.index] = emptyCase
+		c.disabled = true
+	}
 }
 
 func (c *Case) Enable() {
-	c.selector.selecting[c.index] = c.selector.cases[c.index]
+	if c.disabled {
+		c.selector.selecting[c.index] = c.selector.cases[c.index]
+		c.disabled = false
+	}
 }
